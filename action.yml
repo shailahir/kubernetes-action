@@ -1,8 +1,8 @@
 name: 'shailahir/kubernetes-action'
 description: 'Simple Kubernetes Deployment tool'
 inputs:
-  kubeCofig:
-    description: 'KubeConfig for connectng to kubernetes instance'
+  kubeConfig:
+    description: 'KubeConfig for connecting to kubernetes instance'
     required: true
 outputs:
   time:

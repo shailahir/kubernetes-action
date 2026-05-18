@@ -1,13 +1,13 @@
 # Kubernetes Action
 
-Deploy to a Kubernetes Cluster using Github action
+Deploy to a Kubernetes Cluster using GitHub action
 
 Usage example
 
 ```githubexpressionlanguage
 
       - name: Deploy to cluster
-        uses: shailahir/kubernetes-action@v0.1.4
+        uses: shailahir/kubernetes-action@v0.1.5
         with:
           kubeConfig: ${{ secrets.KUBE_CONFIG }}
 
@@ -20,4 +20,3 @@ Only prints the pods in the console
 ## Future plan:
 
 - Kubectl full support (Opinionated)
-- 
