@@ -3,6 +3,8 @@ package com.shailahir.actions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Main {
 
@@ -39,8 +41,33 @@ public class Main {
 
         System.out.println("Exit code: " + exitCode);
 
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
+
+        String kubeconfig = System.getenv("INPUT_KUBECONFIG");
+
+        Path kubeconfigPath = Files.createTempFile("kubeconfig", ".yaml");
+
+        Files.writeString(kubeconfigPath, kubeconfig);
+
+        pb = new ProcessBuilder(
+                "kubectl",
+                "get",
+                "pods",
+                "-A"
+        );
+
+        pb.environment().put(
+                "KUBECONFIG",
+                kubeconfigPath.toString()
+        );
+
+        pb.inheritIO();
+
+        process = pb.start();
+
+        exitCode = process.waitFor();
+
+        Files.deleteIfExists(kubeconfigPath);
+
+        System.exit(exitCode);
     }
 }

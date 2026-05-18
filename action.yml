@@ -5,6 +5,9 @@ inputs:
     description: 'Testing the Input'
     required: true
     default: 'Hello'
+  kubeCofig:
+    description: 'KubeConfig for connectng to kubernetes instance'
+    required: true
 outputs:
   time:
     description: 'System time'
