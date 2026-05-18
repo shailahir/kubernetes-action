@@ -1,10 +1,6 @@
 name: 'shailahir/kubernetes-action'
 description: 'Simple Kubernetes Deployment tool'
 inputs:
-  testInput:
-    description: 'Testing the Input'
-    required: true
-    default: 'Hello'
   kubeCofig:
     description: 'KubeConfig for connectng to kubernetes instance'
     required: true
