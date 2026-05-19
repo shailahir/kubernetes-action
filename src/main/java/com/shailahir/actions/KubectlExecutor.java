@@ -2,6 +2,7 @@ package com.shailahir.actions;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 public class KubectlExecutor {
 
@@ -10,11 +11,14 @@ public class KubectlExecutor {
     private KubeAuth kubeAuth;
 
     public int executeCommand(String... args) {
-        ProcessBuilder pb = new ProcessBuilder(
-                KUBECTL_EXECUTABLE
-        );
 
-        pb.command(args);
+        List<String> command = Arrays.asList(args);
+
+        command.addFirst(KUBECTL_EXECUTABLE);
+
+        ProcessBuilder pb = new ProcessBuilder();
+
+        pb.command(command);
         pb.inheritIO();
 
         System.out.println("Kubectl executing command: " + Arrays.toString(args));
