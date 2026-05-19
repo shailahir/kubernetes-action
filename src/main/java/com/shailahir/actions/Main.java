@@ -1,6 +1,9 @@
 package com.shailahir.actions;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class Main {
 
@@ -15,15 +18,35 @@ public class Main {
         this.kubeAuth.destroy();
     }
 
-    private int start() throws IOException {
+    private int start() {
         this.kubectlExecutor.setAuth(kubeAuth);
 
-        // TODO: Handle deployments
-        return kubectlExecutor.executeCommand("get", "pods", "-a");
+        String deployments = System.getenv("DEPLOYMENTS");
+        String deploymentDelimiter = System.getenv("DEPLOYMENTS_DELIMITER");
+
+        if (deployments != null && deploymentDelimiter != null) {
+            String[] deploymentFilenames = deployments.split(deploymentDelimiter);
+
+            // TODO: execute with thead pools
+            for (String filename : deploymentFilenames) {
+                Path path = Paths.get(filename);
+                System.out.println("Path = " + path);
+
+                if (path.toFile().exists()) {
+                    this.kubectlExecutor.executeCommand("apply", "-f", path.toAbsolutePath().toString());
+                }
+            }
+
+            this.kubectlExecutor.executeCommand("get", "pods");
+        }
+
+        return 0;
     }
 
     static void main(String[] args) throws IOException, InterruptedException {
         Main main = new Main();
+
+        System.out.println("Main command called with args: " + Arrays.toString(args));
 
         try {
             main.init();
