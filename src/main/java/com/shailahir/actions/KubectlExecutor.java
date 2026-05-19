@@ -16,10 +16,10 @@ public class KubectlExecutor {
 
         command.addFirst(KUBECTL_EXECUTABLE);
 
-        ProcessBuilder pb = new ProcessBuilder();
+        ProcessBuilder pb = new ProcessBuilder(command);
 
-        pb.command(command);
-        pb.inheritIO();
+//        pb.command(command);
+
 
         System.out.println("Kubectl executing command: " + Arrays.toString(args));
 
@@ -35,6 +35,7 @@ public class KubectlExecutor {
             );
         }
 
+        pb.inheritIO();
         Process process = null;
         try {
             System.out.println("Starting Kubectl executing command: " + Arrays.toString(args));
