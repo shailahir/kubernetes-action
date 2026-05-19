@@ -17,6 +17,7 @@ public class KubeAuth {
     public static final String KUBECONFIG_FILE = KUBE_CONFIG_FILENAME + KUBE_CONFIG_EXTENSION;
 
     private KubeAuthType kubeAuthType;
+    private String kubeConfigFilepath;
 
     private void setupKubeConfig(String kubeConfigFile) {
         LOGGER.debug("Setup Kube Config File: {}", kubeConfigFile);
@@ -36,6 +37,10 @@ public class KubeAuth {
 
     public KubeAuthType getKubeAuthType() {
         return this.kubeAuthType;
+    }
+
+    public String getKubeConfigFilepath() {
+        return this.kubeConfigFilepath;
     }
 
     public void setup() {

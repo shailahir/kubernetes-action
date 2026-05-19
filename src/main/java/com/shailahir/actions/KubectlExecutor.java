@@ -25,7 +25,7 @@ public class KubectlExecutor {
 
         if (KubeAuthType.KUBECONFIG == this.kubeAuth.getKubeAuthType()) {
             command.add("--kubeconfig");
-            command.add(KubeAuth.KUBECONFIG_FILE);
+            command.add(this.kubeAuth.getKubeConfigFilepath());
         }
 
         command.addAll(List.of(args));
