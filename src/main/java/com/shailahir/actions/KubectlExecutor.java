@@ -11,14 +11,8 @@ public class KubectlExecutor {
     private KubeAuth kubeAuth;
 
     public int executeCommand(String... args) {
-        String kubectlCommand = String.join(" ", args);
 
-        ProcessBuilder pb = new ProcessBuilder(KUBECTL_EXECUTABLE, kubectlCommand);
-
-//        pb.command(command);
-
-
-        System.out.println("Kubectl executing command: " + Arrays.toString(args));
+        ProcessBuilder pb = new ProcessBuilder(KUBECTL_EXECUTABLE);
 
         if (this.kubeAuth == null) {
             System.out.println("Kubectl auth is null");
@@ -31,6 +25,8 @@ public class KubectlExecutor {
                     KubeAuth.KUBECONFIG_FILE
             );
         }
+
+        pb.command().addAll(List.of(args));
 
         pb.inheritIO();
         Process process = null;
