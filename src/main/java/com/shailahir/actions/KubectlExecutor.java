@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,21 +19,24 @@ public class KubectlExecutor {
 
         LOGGER.info("Kubectl executing command: {}", Arrays.toString(args));
 
-        ProcessBuilder pb = new ProcessBuilder(KUBECTL_EXECUTABLE);
+        List<String> command = new ArrayList<>();
+
+        command.add(KUBECTL_EXECUTABLE);
+
+        if (KubeAuthType.KUBECONFIG == this.kubeAuth.getKubeAuthType()) {
+            command.add("--kubeconfig");
+            command.add(KubeAuth.KUBECONFIG_FILE);
+        }
+
+        command.addAll(List.of(args));
+
+        ProcessBuilder pb = new ProcessBuilder(command);
 
         if (this.kubeAuth == null) {
             LOGGER.info("Kubectl auth is null, exiting");
             return 1;
         }
 
-        if (KubeAuthType.KUBECONFIG == this.kubeAuth.getKubeAuthType()) {
-            pb.environment().put(
-                    "KUBECONFIG",
-                    KubeAuth.KUBECONFIG_FILE
-            );
-        }
-
-        pb.command().addAll(List.of(args));
 
         pb.inheritIO();
         Process process = null;
