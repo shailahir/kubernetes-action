@@ -33,7 +33,7 @@ public class Main {
                 System.out.println("Path = " + path);
 
                 if (path.toFile().exists()) {
-                    this.kubectlExecutor.executeCommand("apply", "-f", path.toAbsolutePath().toString());
+                    this.kubectlExecutor.executeCommand("apply", "-f", path.toString());
                 }
             }
 
