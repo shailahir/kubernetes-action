@@ -15,10 +15,12 @@ public class KubectlExecutor {
         );
 
         pb.command(args);
+        pb.inheritIO();
 
         System.out.println("Kubectl executing command: " + Arrays.toString(args));
 
         if (this.kubeAuth == null) {
+            System.out.println("Kubectl auth is null");
             return 1;
         }
 
@@ -29,11 +31,12 @@ public class KubectlExecutor {
             );
         }
 
-        pb.inheritIO();
-
         Process process = null;
         try {
+            System.out.println("Starting Kubectl executing command: " + Arrays.toString(args));
             process = pb.start();
+
+            System.out.println("Kubectl executing command: " + Arrays.toString(args));
             return process.waitFor();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
