@@ -1,10 +1,14 @@
 package com.shailahir.actions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 public class KubectlExecutor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KubectlExecutor.class.getName());
 
     private final static String KUBECTL_EXECUTABLE = "kubectl";
 
@@ -12,10 +16,12 @@ public class KubectlExecutor {
 
     public int executeCommand(String... args) {
 
+        LOGGER.info("Kubectl executing command: {}", Arrays.toString(args));
+
         ProcessBuilder pb = new ProcessBuilder(KUBECTL_EXECUTABLE);
 
         if (this.kubeAuth == null) {
-            System.out.println("Kubectl auth is null");
+            LOGGER.info("Kubectl auth is null, exiting");
             return 1;
         }
 
@@ -31,15 +37,13 @@ public class KubectlExecutor {
         pb.inheritIO();
         Process process = null;
         try {
-            System.out.println("Starting Kubectl executing command: " + Arrays.toString(args));
+            LOGGER.info("Kubectl starting command: {}", Arrays.toString(args));
             process = pb.start();
-
-            System.out.println("Kubectl executing command: " + Arrays.toString(args));
+            LOGGER.info("Kubectl executed command: {}", Arrays.toString(args));
             return process.waitFor();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     public void setAuth(KubeAuth kubeAuth) {

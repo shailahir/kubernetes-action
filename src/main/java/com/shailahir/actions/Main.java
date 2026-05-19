@@ -1,39 +1,60 @@
 package com.shailahir.actions;
 
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class Main {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class.getName());
 
     KubeAuth kubeAuth = new KubeAuth();
     KubectlExecutor kubectlExecutor = new KubectlExecutor();
 
     private void init() {
+        LOGGER.debug("init started");
+
         this.kubeAuth.setup();
+
+        LOGGER.debug("init finished");
     }
 
-    private void tearDown() throws IOException {
+    private void tearDown() {
+        LOGGER.debug("tearDown started");
+
         this.kubeAuth.destroy();
+
+        LOGGER.debug("tearDown finished");
     }
 
     private int start() {
+        LOGGER.debug("action started");
+        LOGGER.debug("Setting auth");
+
         this.kubectlExecutor.setAuth(kubeAuth);
 
         String deployments = System.getenv("INPUT_DEPLOYMENTS");
         String deploymentDelimiter = System.getenv("INPUT_DEPLOYMENTSDELIMITER");
 
         if (deployments != null && deploymentDelimiter != null) {
+            LOGGER.info("Executing in deployment mode");
+
             String[] deploymentFilenames = deployments.split(deploymentDelimiter);
 
-            // TODO: execute with thead pools
+            LOGGER.info("# of deployments = {}", deploymentFilenames.length);
+
             for (String filename : deploymentFilenames) {
                 Path path = Paths.get(filename);
-                System.out.println("Path = " + path);
+
+                LOGGER.info("Checking deployment file {}", path);
 
                 if (path.toFile().exists()) {
+                    LOGGER.info("File exists, dispatching deployment command");
+                    
                     this.kubectlExecutor.executeCommand("apply", "-f", path.toString());
+                } else {
+                    LOGGER.warn("deployment file {} does not exist", filename);
                 }
             }
 
@@ -43,10 +64,8 @@ public class Main {
         return 0;
     }
 
-    static void main(String[] args) throws IOException, InterruptedException {
+    static void main(String[] args) {
         Main main = new Main();
-
-        System.out.println("Main command called with args: " + Arrays.toString(args));
 
         try {
             main.init();
@@ -58,7 +77,7 @@ public class Main {
             System.exit(exitCode);
         } catch (Exception e) {
 
-            System.out.println(e.getMessage());
+
             System.exit(1);
         }
     }
