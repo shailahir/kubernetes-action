@@ -11,12 +11,9 @@ public class KubectlExecutor {
     private KubeAuth kubeAuth;
 
     public int executeCommand(String... args) {
+        String kubectlCommand = String.join(" ", args);
 
-        List<String> command = Arrays.asList(args);
-
-        command.addFirst(KUBECTL_EXECUTABLE);
-
-        ProcessBuilder pb = new ProcessBuilder(command);
+        ProcessBuilder pb = new ProcessBuilder(KUBECTL_EXECUTABLE, kubectlCommand);
 
 //        pb.command(command);
 
