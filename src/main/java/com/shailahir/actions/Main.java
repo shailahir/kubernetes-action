@@ -21,8 +21,8 @@ public class Main {
     private int start() {
         this.kubectlExecutor.setAuth(kubeAuth);
 
-        String deployments = System.getenv("DEPLOYMENTS");
-        String deploymentDelimiter = System.getenv("DEPLOYMENTS_DELIMITER");
+        String deployments = System.getenv("INPUT_DEPLOYMENTS");
+        String deploymentDelimiter = System.getenv("INPUT_DEPLOYMENTSDELIMITER");
 
         if (deployments != null && deploymentDelimiter != null) {
             String[] deploymentFilenames = deployments.split(deploymentDelimiter);
