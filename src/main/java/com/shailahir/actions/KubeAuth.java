@@ -28,6 +28,7 @@ public class KubeAuth {
             LOGGER.debug("Writing Kubeconfig file: {}", kubeconfigPath.toString());
             Files.writeString(kubeconfigPath, kubeConfigFile);
 
+            this.kubeConfigFilepath = kubeconfigPath.toString();
             LOGGER.debug("Kubeconfig file written to: {}", kubeconfigPath.toString());
         } catch (IOException e) {
             LOGGER.error("Error while writing Kubeconfig file: {}", e.getMessage());
