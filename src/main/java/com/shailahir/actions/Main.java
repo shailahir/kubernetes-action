@@ -1,38 +1,40 @@
 package com.shailahir.actions;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class Main {
 
+    KubeAuth kubeAuth = new KubeAuth();
+    KubectlExecutor kubectlExecutor = new KubectlExecutor();
+
+    private void init() {
+        this.kubeAuth.setup();
+    }
+
+    private void tearDown() throws IOException {
+        this.kubeAuth.destroy();
+    }
+
+    private int start() throws IOException {
+        this.kubectlExecutor.setAuth(kubeAuth);
+
+        // TODO: Handle deployments
+        return kubectlExecutor.executeCommand("get", "pods", "-a");
+    }
+
     static void main(String[] args) throws IOException, InterruptedException {
-        String kubeconfig = System.getenv("INPUT_KUBECONFIG");
+        Main main = new Main();
 
-        Path kubeconfigPath = Files.createTempFile("kubeconfig", ".yaml");
+        try {
+            main.init();
 
-        Files.writeString(kubeconfigPath, kubeconfig);
+            int exitCode = main.start();
 
-        ProcessBuilder pb = new ProcessBuilder(
-                "kubectl",
-                "get",
-                "pods",
-                "-A"
-        );
+            main.tearDown();
 
-        pb.environment().put(
-                "KUBECONFIG",
-                kubeconfigPath.toString()
-        );
-
-        pb.inheritIO();
-
-        Process process = pb.start();
-
-        int exitCode = process.waitFor();
-
-        Files.deleteIfExists(kubeconfigPath);
-
-        System.exit(exitCode);
+            System.exit(exitCode);
+        } catch (Exception e) {
+            System.exit(1);
+        }
     }
 }

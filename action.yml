@@ -4,14 +4,19 @@ inputs:
   kubeConfig:
     description: 'KubeConfig for connecting to kubernetes instance'
     required: true
+  deployments:
+    description: 'List of deployment manifest files separated by delimiter (default - comma)'
+    required: false
+  deploymentsDelimiter:
+    description: 'Delimiter for parsing the deployments key'
+    required: false
+    default: ','
 outputs:
   time:
     description: 'System time'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.testInput }}
 
 branding:
   icon: arrow-right
