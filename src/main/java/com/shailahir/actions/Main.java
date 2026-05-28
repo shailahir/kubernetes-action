@@ -1,3 +1,4 @@
+
 package com.shailahir.actions;
 
 import org.slf4j.Logger;
@@ -29,37 +30,187 @@ public class Main {
     }
 
     private int start() {
-        LOGGER.debug("action started");
-        LOGGER.debug("Setting auth");
+
+        LOGGER.info("Action started");
 
         this.kubectlExecutor.setAuth(kubeAuth);
 
-        String deployments = System.getenv("INPUT_DEPLOYMENTS");
-        String deploymentDelimiter = System.getenv("INPUT_DEPLOYMENTSDELIMITER");
+        String deployments =
+                System.getenv("INPUT_DEPLOYMENTS");
 
-        if (deployments != null && deploymentDelimiter != null) {
-            LOGGER.info("Executing in deployment mode");
+        String deploymentsDelimiter =
+                System.getenv("INPUT_DEPLOYMENTSDELIMITER");
 
-            String[] deploymentFilenames = deployments.split(deploymentDelimiter);
+        String namespace =
+                System.getenv("INPUT_NAMESPACE");
 
-            LOGGER.info("# of deployments = {}", deploymentFilenames.length);
+        String rolloutDeployments =
+                System.getenv("INPUT_ROLLOUTDEPLOYMENTS");
 
-            for (String filename : deploymentFilenames) {
-                Path path = Paths.get(filename);
+        String rolloutTimeout =
+                System.getenv("INPUT_ROLLOUTTIMEOUT");
 
-                LOGGER.info("Checking deployment file {}", path);
+        String dryRun =
+                System.getenv("INPUT_DRYRUN");
 
-                if (path.toFile().exists()) {
-                    LOGGER.info("File exists, dispatching deployment command");
-                    
-                    this.kubectlExecutor.executeCommand("apply", "-f", path.toString());
+        String showPods =
+                System.getenv("INPUT_SHOWPODS");
+
+        /*
+         * Defaults
+         */
+        if (deploymentsDelimiter == null ||
+                deploymentsDelimiter.isBlank()) {
+
+            deploymentsDelimiter = ",";
+        }
+
+        if (namespace == null || namespace.isBlank()) {
+            namespace = "default";
+        }
+
+        if (rolloutTimeout == null ||
+                rolloutTimeout.isBlank()) {
+
+            rolloutTimeout = "300s";
+        }
+
+        if (dryRun == null || dryRun.isBlank()) {
+            dryRun = "false";
+        }
+
+        if (showPods == null || showPods.isBlank()) {
+            showPods = "true";
+        }
+
+        LOGGER.info("Namespace: {}", namespace);
+
+        // Apply deployments
+        if (deployments != null &&
+                !deployments.isBlank()) {
+
+            LOGGER.info("Deployment mode enabled");
+
+            String[] deploymentFiles =
+                    deployments.split(deploymentsDelimiter);
+
+            LOGGER.info("Deployments count: {}",
+                    deploymentFiles.length);
+
+            for (String filename : deploymentFiles) {
+
+                String trimmedFilename = filename.trim();
+
+                Path path = Paths.get(trimmedFilename);
+
+                LOGGER.info("Checking deployment file: {}",
+                        path);
+
+                if (!path.toFile().exists()) {
+
+                    LOGGER.error(
+                            "Deployment file does not exist: {}",
+                            trimmedFilename
+                    );
+
+                    return 1;
+                }
+
+                LOGGER.info("Applying deployment file: {}",
+                        trimmedFilename);
+
+                int result;
+
+                if ("true".equalsIgnoreCase(dryRun)) {
+
+                    result = this.kubectlExecutor.executeCommand(
+                            "apply",
+                            "--dry-run=client",
+                            "-f",
+                            path.toString(),
+                            "-n",
+                            namespace
+                    );
+
                 } else {
-                    LOGGER.warn("deployment file {} does not exist", filename);
+
+                    result = this.kubectlExecutor.executeCommand(
+                            "apply",
+                            "-f",
+                            path.toString(),
+                            "-n",
+                            namespace
+                    );
+                }
+
+                if (result != 0) {
+
+                    LOGGER.error(
+                            "Failed applying deployment file: {}",
+                            trimmedFilename
+                    );
+
+                    return result;
                 }
             }
-
-            this.kubectlExecutor.executeCommand("get", "pods");
         }
+
+        // Rollout restart support
+        if (rolloutDeployments != null && !rolloutDeployments.isBlank()) {
+            LOGGER.info("Rollout restart enabled");
+            String[] deploymentNames = rolloutDeployments.split(deploymentsDelimiter);
+            for (String deploymentName : deploymentNames) {
+                String trimmedDeployment = deploymentName.trim();
+
+                LOGGER.info("Rolling out deployment: {}", trimmedDeployment); /* * Restart deployment */
+                int restartResult = this.kubectlExecutor.executeCommand("rollout", "restart", "deployment/" + trimmedDeployment, "-n", namespace);
+                if (restartResult != 0) {
+                    LOGGER.error("Rollout restart failed: {}", trimmedDeployment);
+                    return restartResult;
+                }
+
+                // Wait for rollout
+                LOGGER.info("Waiting for rollout status: {}", trimmedDeployment);
+                int rolloutStatusResult = this.kubectlExecutor.executeCommand("rollout", "status", "deployment/" + trimmedDeployment, "-n", namespace, "--timeout=" + rolloutTimeout);
+                if (rolloutStatusResult != 0) {
+                    LOGGER.error("Rollout status failed: {}", trimmedDeployment); /* * Fetch deployment diagnostics */
+                    LOGGER.error("Fetching deployment diagnostics");
+                    this.kubectlExecutor.executeCommand("describe", "deployment", trimmedDeployment, "-n", namespace);
+                    this.kubectlExecutor.executeCommand("get", "pods", "-n", namespace, "-o", "wide");
+                    return rolloutStatusResult;
+                }
+
+                // Explicit health wait
+                LOGGER.info("Waiting for deployment to become Available");
+                int availableResult = this.kubectlExecutor.executeCommand("wait", "--for=condition=Available", "deployment/" + trimmedDeployment, "-n", namespace, "--timeout=" + rolloutTimeout);
+                if (availableResult != 0) {
+                    LOGGER.error("Deployment did not become healthy: {}", trimmedDeployment);
+                    this.kubectlExecutor.executeCommand("describe", "deployment", trimmedDeployment, "-n", namespace);
+                    this.kubectlExecutor.executeCommand("get", "pods", "-n", namespace, "-o", "wide");
+                    return availableResult;
+                }
+                LOGGER.info("Deployment is healthy: {}", trimmedDeployment);
+            }
+        }
+
+
+
+        /*
+         * Show pods
+         */
+        if ("true".equalsIgnoreCase(showPods)) {
+
+            LOGGER.info("Fetching pod status");
+
+            this.kubectlExecutor.executeCommand(
+                    "get",
+                    "pods",
+                    "-n",
+                    namespace
+            );
+        }
+
+        LOGGER.info("Action completed successfully");
 
         return 0;
     }

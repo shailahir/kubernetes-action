@@ -1,23 +1,56 @@
-name: 'shailahir/kubernetes-action'
-description: 'Simple Kubernetes Deployment tool'
-inputs:
-  kubeConfig:
-    description: 'KubeConfig for connecting to kubernetes instance'
-    required: true
-  deployments:
-    description: 'List of deployment manifest files separated by delimiter (default - comma)'
-    required: false
-  deploymentsDelimiter:
-    description: 'Delimiter for parsing the deployments key'
-    required: false
-    default: ','
-outputs:
-  time:
-    description: 'System time'
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  name: 'shailahir/kubernetes-action'
 
-branding:
-  icon: arrow-right
-  color: blue
+  description: 'Kubernetes deployment GitHub Action'
+
+  inputs:
+
+    kubeConfig:
+      description: 'KubeConfig content for connecting to Kubernetes cluster'
+      required: true
+
+    deployments:
+      description: 'List of Kubernetes manifest files separated by deploymentsDelimiter'
+      required: false
+
+    deploymentsDelimiter:
+      description: 'Delimiter used for parsing deployments and rolloutDeployments'
+      required: false
+      default: ','
+
+    namespace:
+      description: 'Kubernetes namespace'
+      required: false
+      default: 'default'
+
+    rolloutDeployments:
+      description: 'Deployment names to rollout restart after apply'
+      required: false
+
+    rolloutTimeout:
+      description: 'Rollout status timeout'
+      required: false
+      default: '300s'
+
+    dryRun:
+      description: 'Run kubectl apply using dry-run=client'
+      required: false
+      default: 'false'
+
+    showPods:
+      description: 'Show pods after deployment'
+      required: false
+      default: 'true'
+
+  outputs:
+
+    time:
+      description: 'Execution completion time'
+
+  runs:
+    using: 'docker'
+    image: 'Dockerfile'
+
+  branding:
+    icon: 'arrow-right'
+    color: 'blue'
+

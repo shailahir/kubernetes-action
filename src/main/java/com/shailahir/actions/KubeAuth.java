@@ -14,8 +14,6 @@ public class KubeAuth {
     private static final String KUBE_CONFIG_FILENAME = "kubeconfig";
     private static final String KUBE_CONFIG_EXTENSION = ".yml";
 
-    public static final String KUBECONFIG_FILE = KUBE_CONFIG_FILENAME + KUBE_CONFIG_EXTENSION;
-
     private KubeAuthType kubeAuthType;
     private String kubeConfigFilepath;
 
